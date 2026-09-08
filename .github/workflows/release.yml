@@ -1,0 +1,254 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - manifest.json
+  schedule:
+    - cron: '0 23 * * *'
+      timezone: 'America/New_York'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: What to run
+        required: true
+        default: package
+        type: choice
+        options:
+          - package
+          - nightly
+          - stable
+      version:
+        description: Stable semantic version (for example 0.1.0)
+        required: false
+        type: string
+      force:
+        description: Force a nightly even when no package-relevant source changed
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: jls-beads-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    outputs:
+      mode: ${{ steps.mode.outputs.mode }}
+      should_package: ${{ steps.mode.outputs.should_package }}
+      release_tag: ${{ steps.mode.outputs.release_tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve mode
+        id: mode
+        shell: bash
+        run: |
+          set -euo pipefail
+          mode=nightly
+          if [[ '${{ github.event_name }}' == 'workflow_dispatch' ]]; then
+            mode='${{ inputs.action }}'
+          elif [[ '${{ github.event_name }}' == 'push' ]]; then
+            mode=stable
+          fi
+          if [[ '${{ github.ref }}' != 'refs/heads/main' ]]; then
+            echo 'Release automation may only run from main.' >&2
+            exit 1
+          fi
+
+          version="$(jq -er '.version' manifest.json)"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Beads Design manifest version must be plain semver: $version" >&2
+            exit 1
+          fi
+
+          semver_gt() {
+            local lhs="$1" rhs="$2"
+            local l_major l_minor l_patch r_major r_minor r_patch
+            IFS=. read -r l_major l_minor l_patch <<< "$lhs"
+            IFS=. read -r r_major r_minor r_patch <<< "$rhs"
+            if (( 10#$l_major != 10#$r_major )); then (( 10#$l_major > 10#$r_major )); return; fi
+            if (( 10#$l_minor != 10#$r_minor )); then (( 10#$l_minor > 10#$r_minor )); return; fi
+            (( 10#$l_patch > 10#$r_patch ))
+          }
+
+          should_package=true
+          release_tag=dev
+          if [[ "$mode" == nightly ]]; then
+            force='${{ github.event_name == 'workflow_dispatch' && inputs.force || false }}'
+            git fetch origin --tags --force
+            if [[ "$force" != true ]] && git rev-parse -q --verify refs/tags/nightly >/dev/null; then
+              mapfile -t files < <(git diff --name-only nightly..HEAD -- .github/workflows/release.yml manifest.json SKILL.md AGENTS.md agents)
+              if (( ${#files[@]} == 0 )); then should_package=false; fi
+            fi
+            release_tag=nightly
+          elif [[ "$mode" == stable ]]; then
+            if [[ '${{ github.event_name }}' == 'push' ]]; then
+              before='${{ github.event.before }}'
+              if [[ "$before" =~ ^0+$ ]]; then
+                echo 'Automatic stable release cannot determine the previous manifest version.' >&2
+                exit 1
+              fi
+              previous_version="$(git show "$before:manifest.json" | jq -er '.version')"
+              if [[ "$version" == "$previous_version" ]]; then
+                should_package=false
+              elif ! semver_gt "$version" "$previous_version"; then
+                echo "Beads Design version must increase for an automatic stable release: $previous_version -> $version." >&2
+                exit 1
+              fi
+              requested_version="$version"
+            else
+              requested_version='${{ inputs.version }}'
+              if [[ ! "$requested_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                echo 'Stable releases require an explicit plain-semver version input.' >&2
+                exit 1
+              fi
+              if [[ "$requested_version" != "$version" ]]; then
+                echo "Requested stable version $requested_version does not match manifest.json version $version." >&2
+                exit 1
+              fi
+            fi
+            if [[ "$should_package" == true ]]; then
+              release_tag="v$requested_version"
+              git fetch origin --tags --force
+              if git rev-parse -q --verify "refs/tags/$release_tag" >/dev/null; then
+                echo "Tag $release_tag already exists." >&2
+                exit 1
+              fi
+            fi
+          elif [[ "$mode" != package ]]; then
+            echo "Unknown release mode: $mode" >&2
+            exit 1
+          fi
+
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "should_package=$should_package" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
+
+      - name: No package
+        if: steps.mode.outputs.should_package != 'true'
+        run: echo 'Nothing to package or publish.'
+
+  package:
+    needs: prepare
+    if: needs.prepare.outputs.should_package == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate and package portable skill
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+
+          version="$(jq -er '.version' manifest.json)"
+          min_installer="$(jq -er '.min_installer' manifest.json)"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$min_installer" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$(jq -r '.format' manifest.json)" == 1 ]]
+          [[ "$(jq -r '.name' manifest.json)" == beads-design ]]
+          [[ "$(jq -r '.skill_files | join(" ")' manifest.json)" == SKILL.md ]]
+          [[ "$(jq -r '.instruction_fragment' manifest.json)" == AGENTS.md ]]
+          jq -e 'has("runtime") | not' manifest.json >/dev/null
+          jq -e 'has("runtime_artifacts") | not' manifest.json >/dev/null
+          jq -e 'has("runtime_cli") | not' manifest.json >/dev/null
+
+          while IFS= read -r path; do test -f "$path"; done < <(
+            jq -r '[.skill_files[], .instruction_fragment, (.harness_resources | to_entries[] | .value | to_entries[] | .value[])] | .[]' manifest.json
+          )
+
+          grep -q '^name: beads-design$' SKILL.md
+          grep -q '^name = "beads-task-designer"$' agents/codex/beads-task-designer.toml
+          grep -q '^name = "beads-task-reviewer"$' agents/codex/beads-task-reviewer.toml
+          grep -q '^name: beads-task-designer$' agents/claude/beads-task-designer.md
+          grep -q '^name: beads-task-reviewer$' agents/claude/beads-task-reviewer.md
+
+          rm -rf build
+          stage="$PWD/build/package"
+          mkdir -p "$stage/agents/codex" "$stage/agents/claude" "$PWD/build/release"
+          cp manifest.json SKILL.md AGENTS.md LICENSE "$stage/"
+          cp agents/codex/*.toml "$stage/agents/codex/"
+          cp agents/claude/*.md "$stage/agents/claude/"
+
+          archive="$PWD/build/release/beads-design-portable.zip"
+          (
+            cd "$stage"
+            zip -q -r "$archive" .
+          )
+
+          sha256="$(sha256sum "$archive" | cut -d' ' -f1)"
+          url="https://github.com/jacoblockett/jls-beads/releases/download/$RELEASE_TAG/beads-design-portable.zip"
+          jq -n \
+            --arg version "$version" \
+            --arg min_installer "$min_installer" \
+            --arg url "$url" \
+            --arg sha256 "$sha256" \
+            '{format:1,name:"beads-design",version:$version,min_installer:$min_installer,artifacts:{portable:{url:$url,sha256:$sha256}}}' \
+            > build/release/manifest.json
+
+          test -s "$archive"
+          jq -e '.artifacts.portable.url and .artifacts.portable.sha256' build/release/manifest.json >/dev/null
+
+      - name: Upload verified release bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-bundle
+          if-no-files-found: error
+          retention-days: 14
+          path: build/release/*
+
+  publish:
+    needs: [prepare, package]
+    if: needs.prepare.outputs.should_package == 'true' && needs.prepare.outputs.mode != 'package'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-bundle
+          path: build/release
+
+      - name: Publish verified portable release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_MODE: ${{ needs.prepare.outputs.mode }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          mapfile -t assets < <(find build/release -maxdepth 1 -type f -print | sort)
+          if (( ${#assets[@]} == 0 )); then echo 'Verified release bundle is empty.' >&2; exit 1; fi
+
+          if [[ "$RELEASE_MODE" == nightly ]]; then
+            if gh release view "$RELEASE_TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+              gh release upload "$RELEASE_TAG" "${assets[@]}" --repo "$GH_REPO" --clobber
+              mapfile -t existing < <(gh release view "$RELEASE_TAG" --repo "$GH_REPO" --json assets --jq '.assets[].name')
+              for name in "${existing[@]}"; do
+                if [[ ! -f "build/release/$name" ]]; then gh release delete-asset "$RELEASE_TAG" "$name" --repo "$GH_REPO" -y; fi
+              done
+            else
+              gh release create "$RELEASE_TAG" "${assets[@]}" --repo "$GH_REPO" --title 'Nightly' --notes 'Rolling Beads Design package from main.' --prerelease --target "$GITHUB_SHA"
+            fi
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git tag -f nightly "$GITHUB_SHA"
+            git push origin refs/tags/nightly --force
+          else
+            min_installer="$(jq -er '.min_installer' manifest.json)"
+            gh release create "$RELEASE_TAG" "${assets[@]}" --repo "$GH_REPO" --title "$RELEASE_TAG" --notes "Requires JLS installer $min_installer or newer." --generate-notes --target "$GITHUB_SHA"
+          fi
