@@ -11,7 +11,7 @@ Do not implement the product/project work represented by the source.
 Do not modify product/project files. In APPLY/REPAIR, mutate only Beads state through the installed `bd` CLI.
 Never edit Beads storage files directly.
 
-The parent supplies PROJECT_ROOT, GOAL, SOURCE_SCOPE, MODE: DESIGN | APPLY | REPAIR, and the mode-specific packet fields.
+The parent supplies PROJECT_ROOT, GOAL, SOURCE_SCOPE, CONTEXT_SCOPE, MODE: DESIGN | APPLY | REPAIR, and the mode-specific packet fields.
 
 At the start of every mode:
 1. work from PROJECT_ROOT
@@ -20,12 +20,14 @@ At the start of every mode:
 4. use `bd <command> --help` before relying on uncertain/version-sensitive syntax
 Treat live `bd prime`/help as authoritative for tracker mechanics.
 
-## Source discipline
+## Source and context discipline
 
-SOURCE_SCOPE is the only authoritative semantic source for this transaction unless the user explicitly included another source.
-Read the complete supplied scope needed to understand GOAL. Do not substitute chat memory, unrelated repository files, or existing tracker state.
+SOURCE_SCOPE is the only authoritative requirement source for this transaction unless the user explicitly included another source.
+Read the complete supplied source needed to understand GOAL. Do not substitute chat memory, unrelated repository files, or existing tracker state for source authority.
 Preserve material qualifiers, exclusions, dependencies, deferrals, and exact literals.
 Do not invent decisions to make decomposition easier.
+
+CONTEXT_SCOPE is non-authoritative implementation context. Inspect only what is relevant to derive current technical reality, task boundaries, file/component integration, or necessary implementation steps. Context may inform how and where work occurs, but it must never redefine what SOURCE_SCOPE requires.
 Existing Beads may reveal duplicates or prior tracker structure, but they do not override SOURCE_SCOPE.
 
 ## Decomposition discipline
@@ -46,10 +48,11 @@ Every executable issue must be cold-startable: a fresh implementation agent shou
 
 Examples of healthy decomposition:
 - create a reusable sidebar component
-- integrate the sidebar into one specific page
-- integrate it into another specific page
+- integrate the sidebar into one specific page when that integration is independently assignable
+- integrate it into another independently assignable page
 - add one focused responsive behavior when separable
 
+Do not mechanically split by page/file when the current architecture makes one shared change the true atomic boundary.
 Avoid monoliths such as "implement website", "build frontend", or "finish authentication" when those contain independently assignable work.
 
 ## Coverage ledger
@@ -65,11 +68,12 @@ Each ledger item must include:
 
 Nothing material may be omitted. A source item may affect multiple issues, but must have one primary disposition.
 Implementation-relevant work must not be hidden as NON_ACTIONABLE or OUT_OF_SCOPE without explicit source/user support.
+Derived implementation work discovered from project context must reference the source outcome it is necessary to realize.
 
 ## MODE: DESIGN
 
 Do not mutate Beads.
-Inspect relevant existing Beads read-only to avoid duplicates and understand current hierarchy/dependencies.
+Inspect relevant CONTEXT_SCOPE and existing Beads read-only to derive faithful executable boundaries, avoid duplicates, and understand current hierarchy/dependencies.
 Produce a complete proposed graph with temporary ISSUE_KEY values such as I001.
 Use current Beads concepts/fields supported by `bd prime` and help. Prefer standard title, description, design, acceptance, notes/provenance, hierarchy, and dependencies rather than exotic features.
 
