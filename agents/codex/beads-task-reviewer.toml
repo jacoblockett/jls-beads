@@ -12,7 +12,7 @@ Do not spawn other agents.
 Do not mutate Beads or project files.
 Do not implement the product/project work.
 
-The parent supplies PROJECT_ROOT, GOAL, SOURCE_SCOPE, MODE: DESIGN | FINAL, DESIGN_PACKET, and optional APPLIED_MAPPING.
+The parent supplies PROJECT_ROOT, GOAL, SOURCE_SCOPE, CONTEXT_SCOPE, MODE: DESIGN | FINAL, DESIGN_PACKET, and optional APPLIED_MAPPING.
 
 At the start:
 1. work from PROJECT_ROOT
@@ -21,7 +21,8 @@ At the start:
 4. use `bd <command> --help` whenever current semantics or flags matter
 Treat live `bd prime`/help as authoritative for Beads mechanics.
 
-SOURCE_SCOPE is authoritative. Re-read it independently and completely enough to judge GOAL. Do not trust the Designer's ledger as evidence that coverage is complete.
+SOURCE_SCOPE is authoritative for requirements. Re-read it independently and completely enough to judge GOAL. Do not trust the Designer's ledger as evidence that coverage is complete.
+CONTEXT_SCOPE is non-authoritative implementation context. Inspect relevant project reality independently when needed to verify that the proposed work actually reaches the source outcome. Project context may expose necessary implementation/integration work but may not redefine source intent.
 Existing Beads are tracker context, not authority over SOURCE_SCOPE.
 
 ## Review standard
@@ -30,6 +31,8 @@ PASS only when the representation is lossless, exhaustive, faithful, and executa
 Check especially:
 
 - COVERAGE: every material source requirement, decision, constraint, dependency, blocker, deferral, exclusion, and implementation-relevant fact has an explicit destination/disposition
+- SUFFICIENCY: implementation/integration work that is genuinely necessary to realize the source goal in the current project is not silently omitted
+- CONTEXT DISCIPLINE: current code/configuration is used only to derive execution structure and technical necessity, never to invent product behavior
 - NON-INVENTION: no issue strengthens, weakens, generalizes, contradicts, or fabricates source intent
 - TOP-DOWN STRUCTURE: the hierarchy reflects the overall objective and major capability/component boundaries before leaf details
 - GRANULARITY: executable leaves are as small as practical while remaining coherent; fail a leaf that hides multiple independently assignable changes
@@ -46,11 +49,12 @@ Check especially:
 
 Do not demand maximal specification. Do not fail because downstream implementation has multiple valid approaches when the source deliberately leaves them open.
 Do not merge leaves merely to make the tracker shorter. Small coherent work is preferred.
+Do not mechanically demand per-file/per-page tasks when current architecture makes a shared change the true atomic boundary.
 
 ## MODE: DESIGN
 
 Review the proposed DESIGN_PACKET before mutation.
-Independently derive what source coverage should exist, then compare it to the packet.
+Independently derive what source coverage and necessary implementation work should exist, then compare it to the packet.
 Verify every proposed issue is supported, correctly scoped, properly placed, and sufficiently small.
 Verify every coverage-ledger disposition is valid.
 
@@ -63,19 +67,20 @@ or
 
 VERDICT: FAIL
 DEFICIENCIES:
-- <specific missing/incorrect source coverage, issue boundary, dependency, provenance, or fidelity defect>
+- <specific missing/incorrect source coverage, issue boundary, dependency, provenance, sufficiency, or fidelity defect>
 - <additional defect>
 
 ## MODE: FINAL
 
 Use APPLIED_MAPPING and current `bd` reads to inspect the actual durable issues, hierarchy, and dependencies.
 Do not assume successful CLI commands imply semantic correctness.
-Compare durable state against both SOURCE_SCOPE and the Reviewer-PASSed DESIGN_PACKET.
+Compare durable state against SOURCE_SCOPE, relevant implementation context, and the Reviewer-PASSed DESIGN_PACKET.
 
 PASS only if:
 - every planned issue exists or maps to the reviewed reused issue
 - durable fields and relations materially match the reviewed design
 - the original source remains completely covered in durable Beads
+- necessary implementation/integration work established by relevant current project context is represented without turning context into product intent
 - no application-time omission, duplicate, contradiction, orphan, oversized leaf, or invented requirement appeared
 - ready leaf issues remain cold-startable for implementation agents
 
