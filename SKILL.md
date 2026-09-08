@@ -12,22 +12,23 @@ The official `beads` skill and live `bd` CLI documentation remain authoritative 
 
 ## Invariants
 
-1. The user-designated source scope is authoritative for this transaction. Do not silently add requirements from chat memory, unrelated repository files, existing Beads, or implementation preferences.
-2. Preserve meaning losslessly. Every materially relevant source element must be represented by actionable work, constrain actionable work, block actionable work, be explicitly deferred/out of scope, or be explicitly classified non-actionable with a reason. Nothing may silently disappear.
-3. Source units are not task units. Do not create one issue per paragraph, node, bullet, or record unless that is naturally the correct executable boundary.
-4. Decompose top-down: objective -> major capability or component -> narrow implementation responsibility -> leaf work.
-5. Prefer small leaves. A leaf is acceptable only when one implementation agent can pick it up without first decomposing it into independently assignable changes.
-6. Split independently assignable changes. If two changes can be implemented, reviewed, or reverted independently without violating one atomic invariant, they normally belong in separate leaf issues.
-7. Parent issues provide structure and shared context. Leaf issues own executable responsibilities. Do not use a parent epic as a substitute for missing leaves.
-8. Each executable issue must be self-contained enough to resume without the original conversation. Preserve necessary context, source anchors, constraints, dependencies, and objective acceptance conditions when they exist.
-9. Preserve provenance. Each issue must identify the source anchors that justify it. Structured sources should retain native IDs when available. Unstructured sources should use stable path/section/line or equivalent anchors when practical.
-10. Preserve dependencies that materially affect execution order. Add inferred technical dependencies only when they are genuinely required, and distinguish them from source-stated dependencies in issue context when useful.
-11. Existing Beads are context, not authority over the supplied source. Reuse or update a clearly equivalent existing issue instead of duplicating it, but do not let stale tracker state erase or rewrite authoritative source requirements.
-12. Do not invent product decisions to make the task graph look complete. Material ambiguity that prevents faithful decomposition becomes a blocker, not a guessed requirement.
-13. Children run serially. Consume and close each child before spawning another. Children never spawn children.
-14. Spawn prompts contain only dynamic source/project arguments, packets, and exact reviewer deficiencies. The installed specialist definition owns its semantic contract.
-15. One repair attempt is allowed after a failed reviewed design and one repair attempt after a failed final durable-state review. Do not enter reviewer/worker ping-pong.
-16. Do not implement, edit product code, or perform the work represented by the created Beads.
+1. The user-designated source scope is authoritative for requirements in this transaction. Do not silently add requirements from chat memory, unrelated repository files, existing Beads, or implementation preferences.
+2. Relevant project files may be inspected as non-authoritative implementation context when needed to derive executable boundaries, integration work, or current technical reality. Context may inform how and where work must occur; it must never override, weaken, strengthen, or fabricate what the authoritative source requires.
+3. Preserve meaning losslessly. Every materially relevant source element must be represented by actionable work, constrain actionable work, block actionable work, be explicitly deferred/out of scope, or be explicitly classified non-actionable with a reason. Nothing may silently disappear.
+4. Source units are not task units. Do not create one issue per paragraph, node, bullet, or record unless that is naturally the correct executable boundary.
+5. Decompose top-down: objective -> major capability or component -> narrow implementation responsibility -> leaf work.
+6. Prefer small leaves. A leaf is acceptable only when one implementation agent can pick it up without first decomposing it into independently assignable changes.
+7. Split independently assignable changes. If two changes can be implemented, reviewed, or reverted independently without violating one atomic invariant, they normally belong in separate leaf issues.
+8. Parent issues provide structure and shared context. Leaf issues own executable responsibilities. Do not use a parent epic as a substitute for missing leaves.
+9. Each executable issue must be self-contained enough to resume without the original conversation. Preserve necessary context, source anchors, constraints, dependencies, and objective acceptance conditions when they exist.
+10. Preserve provenance. Each issue must identify the source anchors that justify it. Structured sources should retain native IDs when available. Unstructured sources should use stable path/section/line or equivalent anchors when practical.
+11. Preserve dependencies that materially affect execution order. Add inferred technical dependencies only when they are genuinely required, and distinguish them from source-stated dependencies in issue context when useful.
+12. Existing Beads are context, not authority over the supplied source. Reuse or update a clearly equivalent existing issue instead of duplicating it, but do not let stale tracker state erase or rewrite authoritative source requirements.
+13. Do not invent product decisions to make the task graph look complete. Material ambiguity that prevents faithful decomposition becomes a blocker, not a guessed requirement.
+14. Children run serially. Consume and close each child before spawning another. Children never spawn children.
+15. Spawn prompts contain only dynamic source/project arguments, packets, and exact reviewer deficiencies. The installed specialist definition owns its semantic contract.
+16. One repair attempt is allowed after a failed reviewed design and one repair attempt after a failed final durable-state review. Do not enter reviewer/worker ping-pong.
+17. Do not implement, edit product code, or perform the work represented by the created Beads.
 
 ## Required specialists
 
@@ -73,9 +74,10 @@ Do not run `bd init` automatically. If no Beads database exists, report that pre
 1. Resolve the project root containing the target Beads database.
 2. Resolve the exact authoritative source scope from the user's request. This may be inline text, files, directories, structured exports such as Map JSON, or another explicitly designated corpus.
 3. Record the user's requested end result as `GOAL`. Do not expand it beyond the supplied evidence.
-4. Run `bd --version` and `bd prime`. Confirm the target Beads database can be read.
-5. Inspect existing Beads only enough to identify overlaps, hierarchy, and dependencies relevant to the requested compilation.
-6. If the source scope is ambiguous in a way that materially changes what is authoritative, stop and ask. Do not broaden scope by convenience.
+4. Set `CONTEXT_SCOPE` to the smallest relevant project implementation scope, or `AUTO_RELEVANT` when the Designer must discover it. Project context is never requirement authority.
+5. Run `bd --version` and `bd prime`. Confirm the target Beads database can be read.
+6. Inspect existing Beads only enough to identify overlaps, hierarchy, and dependencies relevant to the requested compilation.
+7. If the source scope is ambiguous in a way that materially changes what is authoritative, stop and ask. Do not broaden source authority by convenience.
 
 A Map export is ordinary structured input here. Do not invoke Map or reconstruct Map workflow semantics merely because the input came from Map.
 
@@ -88,11 +90,12 @@ MODE: DESIGN
 PROJECT_ROOT: <path>
 GOAL: <exact requested end result>
 SOURCE_SCOPE: <exact paths and/or exact inline source packet>
+CONTEXT_SCOPE: <smallest relevant implementation scope or AUTO_RELEVANT>
 EXISTING_BEADS_SCOPE: <relevant existing ids or AUTO>
 REVIEW_DEFICIENCIES: NONE
 ```
 
-The Designer must independently inventory the authoritative source, understand the whole objective before leaf decomposition, inspect relevant existing Beads, and return a `DESIGN_PACKET` containing:
+The Designer must independently inventory the authoritative source, understand the whole objective before leaf decomposition, inspect relevant implementation context and existing Beads, and return a `DESIGN_PACKET` containing:
 
 - a complete source coverage ledger
 - the proposed issue hierarchy
@@ -100,6 +103,8 @@ The Designer must independently inventory the authoritative source, understand t
 - proposed dependencies
 - mappings to reused existing issues where applicable
 - explicit blocked/deferred/out-of-scope/non-actionable dispositions
+
+The Designer may derive implementation tasks that are necessary to realize the authoritative goal from current project context, but such derived work must remain traceable to the source outcome it serves and must not become a new product requirement.
 
 Each coverage-ledger item must have exactly one primary disposition and may reference one or more proposed issues. The packet must be detailed enough for deterministic application without reinterpreting the source.
 
@@ -114,16 +119,19 @@ MODE: DESIGN
 PROJECT_ROOT: <path>
 GOAL: <exact requested end result>
 SOURCE_SCOPE: <same authoritative source>
+CONTEXT_SCOPE: <same implementation context rule>
 DESIGN_PACKET: <designer output or temporary packet path>
 APPLIED_MAPPING: NONE
 ```
 
-The Reviewer must re-read the authoritative source independently. It must not trust the Designer's coverage ledger as proof of coverage.
+The Reviewer must re-read the authoritative source independently. It must not trust the Designer's coverage ledger as proof of coverage. It may inspect relevant implementation context independently to verify that the proposed work is actually sufficient to realize the source goal.
 
 PASS requires all of the following:
 
 - every material source requirement, decision, constraint, dependency, deferred item, blocker, and relevant fact is accounted for
 - no source meaning is strengthened, weakened, generalized, or invented
+- necessary implementation work implied by the source plus current project reality is not silently omitted
+- project context is used only to derive execution structure, not to redefine requirements
 - the proposed hierarchy reflects the objective before details
 - executable leaves are narrowly scoped and independently assignable where possible
 - no leaf hides multiple separable responsibilities
@@ -145,6 +153,7 @@ MODE: APPLY
 PROJECT_ROOT: <path>
 GOAL: <same goal>
 SOURCE_SCOPE: <same source scope>
+CONTEXT_SCOPE: <same implementation context rule>
 DESIGN_PACKET: <reviewed packet>
 REVIEW_DEFICIENCIES: NONE
 ```
@@ -166,6 +175,7 @@ MODE: FINAL
 PROJECT_ROOT: <path>
 GOAL: <same goal>
 SOURCE_SCOPE: <same source scope>
+CONTEXT_SCOPE: <same implementation context rule>
 DESIGN_PACKET: <reviewed packet>
 APPLIED_MAPPING: <durable ids from Designer>
 ```
@@ -177,6 +187,7 @@ PASS only if:
 - every planned issue exists or maps to a valid reused issue
 - descriptions, design constraints, acceptance conditions, provenance, hierarchy, and dependencies materially match the reviewed design
 - the original source still has complete coverage in the durable graph
+- necessary implementation/integration work established by relevant current project context is represented without turning context into product intent
 - there are no accidental omissions, duplicates, contradictory issues, oversized leaves, orphaned executable work, or invented requirements
 - a fresh implementation agent can pick any ready leaf and understand exactly what responsibility it owns without reconstructing the planning conversation
 
@@ -187,6 +198,6 @@ Then run one fresh FINAL review. If it fails again, stop and report that safe co
 
 Beads Design is complete only when the final Reviewer returns PASS.
 
-Completion means the authoritative source has a reviewed, durable Beads representation in which every material source element has an explicit disposition and every executable responsibility is represented by sufficiently small, self-contained work.
+Completion means the authoritative source has a reviewed, durable Beads representation in which every material source element has an explicit disposition and every executable responsibility needed to realize the goal is represented by sufficiently small, self-contained work.
 
 Report the created/updated issue count, reused issue count, blocked/deferred/non-actionable counts, and final review result. Do not implement the issues.
