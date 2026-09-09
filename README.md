@@ -1,12 +1,15 @@
-# JLS Beads
+# Beads Design
 
-`beads-design` is a lossless source-to-Beads compiler for JLS.
+Beads Design is a lossless, exhaustive compiler for turning authoritative goals, specifications, plans, exports, and other source material into small, self-contained Beads issues. It preserves source coverage, provenance, constraints, and dependencies so implementation agents can pick up narrowly scoped work without reconstructing the original planning context.
 
-It takes an authoritative goal, specification, plan, structured export, or other user-designated source and derives a complete Beads work graph without silently dropping requirements. It is intentionally separate from the official `beads` skill: the official skill teaches ordinary Beads operation; `beads-design` owns exhaustive decomposition, provenance, coverage, and final fidelity review.
+Beads Design requires the `bd` CLI and an existing Beads database. It supports OpenAI Codex and Claude Code.
 
-## Architecture
+## Install
 
-- `beads-task-designer`: inventories the source, decomposes top-down, and creates or repairs the Beads graph.
-- `beads-task-reviewer`: independently audits source coverage, granularity, dependencies, fidelity, and the final durable Beads state.
+The recommended way to install Beads Design is with [JLS](https://github.com/jacoblockett/jls), which manages installation, updates, and removal.
 
-The skill contains no runtime executable. JLS installs `SKILL.md`, the harness-native specialists, and the optional instruction fragment.
+Standalone release packages are available from [Releases](https://github.com/jacoblockett/jls-beads/releases).
+
+## License
+
+This project is licensed under the [MIT License](LICENSE). Copyright © 2026 Jacob Lockett.
