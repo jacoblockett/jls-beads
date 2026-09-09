@@ -2,7 +2,7 @@
 
 Tasks is a lossless, exhaustive compiler for turning authoritative goals, specifications, plans, exports, and other source material into small, self-contained work items. It preserves source coverage, provenance, constraints, and dependencies so implementation agents can pick up narrowly scoped work without reconstructing the original planning context.
 
-Tasks currently uses the `bd` CLI and an existing Beads database as its native task backend. It supports OpenAI Codex and Claude Code.
+Tasks currently uses Beads as its native task backend. It supports OpenAI Codex and Claude Code.
 
 ## Install
 
