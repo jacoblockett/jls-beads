@@ -181,14 +181,14 @@ jobs:
           cp agents/codex/*.toml "$stage/agents/codex/"
           cp agents/claude/*.md "$stage/agents/claude/"
 
-          archive="$PWD/build/release/tasks-portable.zip"
+          archive="$PWD/build/release/tasks.zip"
           (
             cd "$stage"
             zip -q -r "$archive" .
           )
 
           sha256="$(sha256sum "$archive" | cut -d' ' -f1)"
-          url="https://github.com/jacoblockett/jls-tasks/releases/download/$RELEASE_TAG/tasks-portable.zip"
+          url="https://github.com/jacoblockett/jls-tasks/releases/download/$RELEASE_TAG/tasks.zip"
           jq -n \
             --arg version "$version" \
             --arg min_installer "$min_installer" \
