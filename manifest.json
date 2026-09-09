@@ -1,23 +1,23 @@
 {
   "format": 1,
-  "name": "beads-design",
+  "name": "tasks",
   "version": "0.1.0",
   "min_installer": "0.1.0",
-  "description": "Lossless, exhaustive compiler from authoritative goals and source material into bite-sized Beads work graphs.",
+  "description": "Lossless, exhaustive compiler from authoritative goals and source material into bite-sized actionable task graphs.",
   "skill_files": [
     "SKILL.md"
   ],
   "harness_resources": {
     "codex": {
       "agents": [
-        "agents/codex/beads-task-designer.toml",
-        "agents/codex/beads-task-reviewer.toml"
+        "agents/codex/tasks-designer.toml",
+        "agents/codex/tasks-reviewer.toml"
       ]
     },
     "claude": {
       "agents": [
-        "agents/claude/beads-task-designer.md",
-        "agents/claude/beads-task-reviewer.md"
+        "agents/claude/tasks-designer.md",
+        "agents/claude/tasks-reviewer.md"
       ]
     }
   },

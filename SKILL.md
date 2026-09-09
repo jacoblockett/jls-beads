@@ -1,18 +1,18 @@
 ---
-name: beads-design
-description: Exhaustively compile a user-designated authoritative goal, specification, plan, export, or source corpus into a faithful, bite-sized Beads work graph. Use when explicitly invoked as $beads-design or when the user asks to turn source material into durable actionable Beads without losing requirements.
+name: tasks
+description: Exhaustively compile a user-designated authoritative goal, specification, plan, export, or source corpus into a faithful, bite-sized task graph. Use when explicitly invoked as $tasks or when the user asks to turn source material into durable actionable tasks without losing requirements.
 ---
 
-# Beads Design
+# Tasks
 
-Beads Design is a lossless compiler from authoritative source material to durable Beads work. It does not implement the resulting work.
-Use this workflow only to derive, write, and verify Beads issues from the exact source scope the user designated.
+Tasks is a lossless compiler from authoritative source material to durable actionable work. It does not implement the resulting work.
+Use this workflow only to derive, write, and verify tasks from the exact source scope the user designated.
 
-The official `beads` skill and live `bd` CLI documentation remain authoritative for Beads mechanics. Beads Design owns source fidelity, decomposition, provenance, coverage, and review.
+Tasks currently uses Beads as its native task backend. The official `beads` skill and live `bd` CLI documentation remain authoritative for Beads mechanics. Tasks owns source fidelity, decomposition, provenance, coverage, and review.
 
 ## Invariants
 
-1. The user-designated source scope is authoritative for requirements in this transaction. Do not silently add requirements from chat memory, unrelated repository files, existing Beads, or implementation preferences.
+1. The user-designated source scope is authoritative for requirements in this transaction. Do not silently add requirements from chat memory, unrelated repository files, existing tracker state, or implementation preferences.
 2. Relevant project files may be inspected as non-authoritative implementation context when needed to derive executable boundaries, integration work, or current technical reality. Context may inform how and where work must occur; it must never override, weaken, strengthen, or fabricate what the authoritative source requires.
 3. Preserve meaning losslessly. Every materially relevant source element must be represented by actionable work, constrain actionable work, block actionable work, be explicitly deferred/out of scope, or be explicitly classified non-actionable with a reason. Nothing may silently disappear.
 4. Source units are not task units. Do not create one issue per paragraph, node, bullet, or record unless that is naturally the correct executable boundary.
@@ -23,25 +23,25 @@ The official `beads` skill and live `bd` CLI documentation remain authoritative 
 9. Each executable issue must be self-contained enough to resume without the original conversation. Preserve necessary context, source anchors, constraints, dependencies, and objective acceptance conditions when they exist.
 10. Preserve provenance. Each issue must identify the source anchors that justify it. Structured sources should retain native IDs when available. Unstructured sources should use stable path/section/line or equivalent anchors when practical.
 11. Preserve dependencies that materially affect execution order. Add inferred technical dependencies only when they are genuinely required, and distinguish them from source-stated dependencies in issue context when useful.
-12. Existing Beads are context, not authority over the supplied source. Reuse or update a clearly equivalent existing issue instead of duplicating it, but do not let stale tracker state erase or rewrite authoritative source requirements.
+12. Existing tracker items are context, not authority over the supplied source. Reuse or update a clearly equivalent existing issue instead of duplicating it, but do not let stale tracker state erase or rewrite authoritative source requirements.
 13. Do not invent product decisions to make the task graph look complete. Material ambiguity that prevents faithful decomposition becomes a blocker, not a guessed requirement.
 14. Children run serially. Consume and close each child before spawning another. Children never spawn children.
 15. Spawn prompts contain only dynamic source/project arguments, packets, and exact reviewer deficiencies. The installed specialist definition owns its semantic contract.
 16. One repair attempt is allowed after a failed reviewed design and one repair attempt after a failed final durable-state review. Do not enter reviewer/worker ping-pong.
-17. Do not implement, edit product code, or perform the work represented by the created Beads.
+17. Do not implement, edit product code, or perform the work represented by the created tasks.
 
 ## Required specialists
 
 JLS installs two native specialists:
 
-- `beads-task-designer`
-- `beads-task-reviewer`
+- `tasks-designer`
+- `tasks-reviewer`
 
 Use the exact registered name. Do not replace a required specialist with a generic child or parent-thread semantic judgment. If a required specialist cannot run, fail the stage closed.
 
-## Live Beads guidance
+## Live backend guidance
 
-Do not depend on memorized `bd` flags when the installed version can answer directly.
+Tasks currently writes to Beads. Do not depend on memorized `bd` flags when the installed version can answer directly.
 At the start of a substantive transaction:
 
 ```text
@@ -83,7 +83,7 @@ A Map export is ordinary structured input here. Do not invoke Map or reconstruct
 
 ## Design transaction
 
-Spawn `beads-task-designer` with:
+Spawn `tasks-designer` with:
 
 ```text
 MODE: DESIGN
@@ -112,7 +112,7 @@ For very large packets, the parent may allocate temporary storage outside the pr
 
 ## Design review
 
-Close Designer, then spawn `beads-task-reviewer` with:
+Close Designer, then spawn `tasks-reviewer` with:
 
 ```text
 MODE: DESIGN
@@ -146,7 +146,7 @@ On FAIL, allow one fresh Designer `MODE: DESIGN` attempt using the exact reviewe
 
 ## Apply transaction
 
-After design review PASS, spawn a fresh `beads-task-designer` with:
+After design review PASS, spawn a fresh `tasks-designer` with:
 
 ```text
 MODE: APPLY
@@ -168,7 +168,7 @@ If application cannot faithfully realize the reviewed design because the tracker
 
 ## Final durable-state review
 
-Close Designer, then spawn `beads-task-reviewer` with:
+Close Designer, then spawn `tasks-reviewer` with:
 
 ```text
 MODE: FINAL
@@ -191,13 +191,13 @@ PASS only if:
 - there are no accidental omissions, duplicates, contradictory issues, oversized leaves, orphaned executable work, or invented requirements
 - a fresh implementation agent can pick any ready leaf and understand exactly what responsibility it owns without reconstructing the planning conversation
 
-On FAIL, allow one `beads-task-designer` `MODE: REPAIR` transaction using only the exact final-review deficiencies and the original reviewed packet. The Designer may modify only issues in the current transaction or explicitly mapped pre-existing equivalents. It may delete only an erroneous issue created by this transaction when deletion is clearly required by the reviewer; never delete unrelated or pre-existing tracker state.
+On FAIL, allow one `tasks-designer` `MODE: REPAIR` transaction using only the exact final-review deficiencies and the original reviewed packet. The Designer may modify only issues in the current transaction or explicitly mapped pre-existing equivalents. It may delete only an erroneous issue created by this transaction when deletion is clearly required by the reviewer; never delete unrelated or pre-existing tracker state.
 Then run one fresh FINAL review. If it fails again, stop and report that safe compilation did not complete.
 
 ## Completion boundary
 
-Beads Design is complete only when the final Reviewer returns PASS.
+Tasks is complete only when the final Reviewer returns PASS.
 
-Completion means the authoritative source has a reviewed, durable Beads representation in which every material source element has an explicit disposition and every executable responsibility needed to realize the goal is represented by sufficiently small, self-contained work.
+Completion means the authoritative source has a reviewed, durable task representation in which every material source element has an explicit disposition and every executable responsibility needed to realize the goal is represented by sufficiently small, self-contained work.
 
 Report the created/updated issue count, reused issue count, blocked/deferred/non-actionable counts, and final review result. Do not implement the issues.

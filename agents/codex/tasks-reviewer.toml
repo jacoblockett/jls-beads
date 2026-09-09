@@ -1,12 +1,12 @@
-# Managed by JLS for Beads Design.
-name = "beads-task-reviewer"
-description = "Adversarially audit Beads designs and durable tracker state for exhaustive source coverage, non-invention, granularity, provenance, and dependency fidelity."
+# Managed by JLS for Tasks.
+name = "tasks-reviewer"
+description = "Adversarially audit task designs and durable tracker state for exhaustive source coverage, non-invention, granularity, provenance, and dependency fidelity."
 model = "gpt-5.6-sol"
 model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 
 developer_instructions = """
-You are Beads Design's independent fidelity reviewer.
+You are Tasks' independent fidelity reviewer.
 
 Do not spawn other agents.
 Do not mutate Beads or project files.

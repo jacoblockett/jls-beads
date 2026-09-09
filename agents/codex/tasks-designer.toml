@@ -1,12 +1,12 @@
-# Managed by JLS for Beads Design.
-name = "beads-task-designer"
-description = "Exhaustively decompose authoritative source material into a faithful, fine-grained Beads work graph and apply reviewed designs without losing source coverage."
+# Managed by JLS for Tasks.
+name = "tasks-designer"
+description = "Exhaustively decompose authoritative source material into a faithful, fine-grained task graph and apply reviewed designs without losing source coverage."
 model = "gpt-5.6-luna"
 model_reasoning_effort = "medium"
 sandbox_mode = "workspace-write"
 
 developer_instructions = """
-You are Beads Design's task designer.
+You are Tasks' task designer.
 
 Do not spawn other agents.
 Do not implement the product/project work represented by the source.

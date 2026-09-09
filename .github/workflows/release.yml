@@ -34,7 +34,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: jls-beads-release
+  group: jls-tasks-release
   cancel-in-progress: false
 
 jobs:
@@ -67,7 +67,7 @@ jobs:
 
           version="$(jq -er '.version' manifest.json)"
           if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Beads Design manifest version must be plain semver: $version" >&2
+            echo "Tasks manifest version must be plain semver: $version" >&2
             exit 1
           fi
 
@@ -102,7 +102,7 @@ jobs:
               if [[ "$version" == "$previous_version" ]]; then
                 should_package=false
               elif ! semver_gt "$version" "$previous_version"; then
-                echo "Beads Design version must increase for an automatic stable release: $previous_version -> $version." >&2
+                echo "Tasks version must increase for an automatic stable release: $previous_version -> $version." >&2
                 exit 1
               fi
               requested_version="$version"
@@ -157,7 +157,7 @@ jobs:
           [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           [[ "$min_installer" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           [[ "$(jq -r '.format' manifest.json)" == 1 ]]
-          [[ "$(jq -r '.name' manifest.json)" == beads-design ]]
+          [[ "$(jq -r '.name' manifest.json)" == tasks ]]
           [[ "$(jq -r '.skill_files | join(" ")' manifest.json)" == SKILL.md ]]
           [[ "$(jq -r '.instruction_fragment' manifest.json)" == AGENTS.md ]]
           jq -e 'has("runtime") | not' manifest.json >/dev/null
@@ -168,11 +168,11 @@ jobs:
             jq -r '[.skill_files[], .instruction_fragment, (.harness_resources | to_entries[] | .value | to_entries[] | .value[])] | .[]' manifest.json
           )
 
-          grep -q '^name: beads-design$' SKILL.md
-          grep -q '^name = "beads-task-designer"$' agents/codex/beads-task-designer.toml
-          grep -q '^name = "beads-task-reviewer"$' agents/codex/beads-task-reviewer.toml
-          grep -q '^name: beads-task-designer$' agents/claude/beads-task-designer.md
-          grep -q '^name: beads-task-reviewer$' agents/claude/beads-task-reviewer.md
+          grep -q '^name: tasks$' SKILL.md
+          grep -q '^name = "tasks-designer"$' agents/codex/tasks-designer.toml
+          grep -q '^name = "tasks-reviewer"$' agents/codex/tasks-reviewer.toml
+          grep -q '^name: tasks-designer$' agents/claude/tasks-designer.md
+          grep -q '^name: tasks-reviewer$' agents/claude/tasks-reviewer.md
 
           rm -rf build
           stage="$PWD/build/package"
@@ -181,20 +181,20 @@ jobs:
           cp agents/codex/*.toml "$stage/agents/codex/"
           cp agents/claude/*.md "$stage/agents/claude/"
 
-          archive="$PWD/build/release/beads-design-portable.zip"
+          archive="$PWD/build/release/tasks-portable.zip"
           (
             cd "$stage"
             zip -q -r "$archive" .
           )
 
           sha256="$(sha256sum "$archive" | cut -d' ' -f1)"
-          url="https://github.com/jacoblockett/jls-beads/releases/download/$RELEASE_TAG/beads-design-portable.zip"
+          url="https://github.com/jacoblockett/jls-tasks/releases/download/$RELEASE_TAG/tasks-portable.zip"
           jq -n \
             --arg version "$version" \
             --arg min_installer "$min_installer" \
             --arg url "$url" \
             --arg sha256 "$sha256" \
-            '{format:1,name:"beads-design",version:$version,min_installer:$min_installer,artifacts:{portable:{url:$url,sha256:$sha256}}}' \
+            '{format:1,name:"tasks",version:$version,min_installer:$min_installer,artifacts:{portable:{url:$url,sha256:$sha256}}}' \
             > build/release/manifest.json
 
           test -s "$archive"
@@ -242,7 +242,7 @@ jobs:
                 if [[ ! -f "build/release/$name" ]]; then gh release delete-asset "$RELEASE_TAG" "$name" --repo "$GH_REPO" -y; fi
               done
             else
-              gh release create "$RELEASE_TAG" "${assets[@]}" --repo "$GH_REPO" --title 'Nightly' --notes 'Rolling Beads Design package from main.' --prerelease --target "$GITHUB_SHA"
+              gh release create "$RELEASE_TAG" "${assets[@]}" --repo "$GH_REPO" --title 'Nightly' --notes 'Rolling Tasks package from main.' --prerelease --target "$GITHUB_SHA"
             fi
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
