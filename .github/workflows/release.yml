@@ -1,11 +1,6 @@
 name: Release
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - manifest.json
   schedule:
     - cron: '0 23 * * *'
       timezone: 'America/New_York'
@@ -57,8 +52,6 @@ jobs:
           mode=nightly
           if [[ '${{ github.event_name }}' == 'workflow_dispatch' ]]; then
             mode='${{ inputs.action }}'
-          elif [[ '${{ github.event_name }}' == 'push' ]]; then
-            mode=stable
           fi
           if [[ '${{ github.ref }}' != 'refs/heads/main' ]]; then
             echo 'Release automation may only run from main.' >&2
@@ -71,59 +64,31 @@ jobs:
             exit 1
           fi
 
-          semver_gt() {
-            local lhs="$1" rhs="$2"
-            local l_major l_minor l_patch r_major r_minor r_patch
-            IFS=. read -r l_major l_minor l_patch <<< "$lhs"
-            IFS=. read -r r_major r_minor r_patch <<< "$rhs"
-            if (( 10#$l_major != 10#$r_major )); then (( 10#$l_major > 10#$r_major )); return; fi
-            if (( 10#$l_minor != 10#$r_minor )); then (( 10#$l_minor > 10#$r_minor )); return; fi
-            (( 10#$l_patch > 10#$r_patch ))
-          }
-
           should_package=true
           release_tag=dev
           if [[ "$mode" == nightly ]]; then
             force='${{ github.event_name == 'workflow_dispatch' && inputs.force || false }}'
             git fetch origin --tags --force
             if [[ "$force" != true ]] && git rev-parse -q --verify refs/tags/nightly >/dev/null; then
-              mapfile -t files < <(git diff --name-only nightly..HEAD -- .github/workflows/release.yml manifest.json SKILL.md AGENTS.md agents)
+              mapfile -t files < <(git diff --name-only nightly..HEAD -- .github/workflows/release.yml .github/workflows/version-check.yml manifest.json SKILL.md AGENTS.md agents)
               if (( ${#files[@]} == 0 )); then should_package=false; fi
             fi
             release_tag=nightly
           elif [[ "$mode" == stable ]]; then
-            if [[ '${{ github.event_name }}' == 'push' ]]; then
-              before='${{ github.event.before }}'
-              if [[ "$before" =~ ^0+$ ]]; then
-                echo 'Automatic stable release cannot determine the previous manifest version.' >&2
-                exit 1
-              fi
-              previous_version="$(git show "$before:manifest.json" | jq -er '.version')"
-              if [[ "$version" == "$previous_version" ]]; then
-                should_package=false
-              elif ! semver_gt "$version" "$previous_version"; then
-                echo "Tasks version must increase for an automatic stable release: $previous_version -> $version." >&2
-                exit 1
-              fi
-              requested_version="$version"
-            else
-              requested_version='${{ inputs.version }}'
-              if [[ ! "$requested_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-                echo 'Stable releases require an explicit plain-semver version input.' >&2
-                exit 1
-              fi
-              if [[ "$requested_version" != "$version" ]]; then
-                echo "Requested stable version $requested_version does not match manifest.json version $version." >&2
-                exit 1
-              fi
+            requested_version='${{ inputs.version }}'
+            if [[ ! "$requested_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo 'Stable releases require an explicit plain-semver version input.' >&2
+              exit 1
             fi
-            if [[ "$should_package" == true ]]; then
-              release_tag="v$requested_version"
-              git fetch origin --tags --force
-              if git rev-parse -q --verify "refs/tags/$release_tag" >/dev/null; then
-                echo "Tag $release_tag already exists." >&2
-                exit 1
-              fi
+            if [[ "$requested_version" != "$version" ]]; then
+              echo "Requested stable version $requested_version does not match manifest.json version $version." >&2
+              exit 1
+            fi
+            release_tag="v$requested_version"
+            git fetch origin --tags --force
+            if git rev-parse -q --verify "refs/tags/$release_tag" >/dev/null; then
+              echo "Tag $release_tag already exists." >&2
+              exit 1
             fi
           elif [[ "$mode" != package ]]; then
             echo "Unknown release mode: $mode" >&2
