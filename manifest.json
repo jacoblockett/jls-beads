@@ -1,7 +1,7 @@
 {
   "format": 1,
   "name": "tasks",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "min_installer": "0.1.0",
   "description": "Lossless, exhaustive compiler from authoritative goals and source material into bite-sized actionable task graphs.",
   "skill_files": [
