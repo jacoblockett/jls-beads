@@ -22,7 +22,7 @@
     }
   },
   "instruction_fragment": "AGENTS.md",
-  "generated_data": [
+  "generated_cleanup": [
     {
       "kind": "beads-metadata",
       "description": "Beads tasks/issues generated from a goal/intent",
