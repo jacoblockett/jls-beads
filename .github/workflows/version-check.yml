@@ -60,5 +60,10 @@ jobs:
             exit 1
           fi
 
+          if git rev-parse -q --verify "refs/tags/v$current" >/dev/null; then
+            echo "Version v$current is already tagged; no release workflow dispatched."
+            exit 0
+          fi
+
           gh workflow run release.yml --ref main -f action=stable -f version="$current"
           echo "Dispatched stable release for $current."
