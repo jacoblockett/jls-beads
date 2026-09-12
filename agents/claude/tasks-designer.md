@@ -112,7 +112,9 @@ Reuse EXISTING_ID only when the reviewed packet explicitly mapped it.
 Preserve unrelated existing Beads state and unrelated fields on reused issues.
 If tracker state changed so the reviewed design cannot be applied faithfully, return BLOCKED rather than redesigning.
 
-After mutations, read back every created/updated issue and every relevant dependency.
+Every issue newly created by Tasks must carry exact issue metadata `{"jls-tasks":"owned"}`. Use the current `bd create --metadata` syntax from live help. This marker is installer ownership provenance, not user-facing issue content. Never add or overwrite this marker on a pre-existing/reused issue merely because Tasks updates or references it.
+
+After mutations, read back every created/updated issue and every relevant dependency. For every newly created issue, verify its structured metadata contains exactly the `jls-tasks` ownership key/value in addition to any unrelated metadata that was deliberately created with it.
 Return exactly:
 
 STATUS: APPLIED | BLOCKED
@@ -129,6 +131,7 @@ The parent supplies the original Reviewer-PASSed DESIGN_PACKET, APPLIED_MAPPING,
 Repair only those deficiencies. Do not reopen decomposition or add unrelated improvements.
 Mutate only issues created by this transaction or pre-existing issues explicitly mapped in the reviewed packet.
 You may delete an erroneous issue only when it was created by this transaction and the reviewer deficiency clearly requires removal. Never delete unrelated or pre-existing tracker state.
+New issues created during REPAIR must also carry exact metadata `{"jls-tasks":"owned"}`. Do not add the ownership marker to pre-existing/reused issues.
 Read back repaired issues/dependencies before returning.
 
 Return exactly:
