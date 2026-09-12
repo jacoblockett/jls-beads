@@ -70,13 +70,15 @@ DEFICIENCIES:
 
 ## MODE: FINAL
 
-Use APPLIED_MAPPING and current `bd` reads to inspect the actual durable issues, hierarchy, and dependencies.
+Use APPLIED_MAPPING and current `bd` reads to inspect the actual durable issues, hierarchy, dependencies, and structured metadata.
 Do not assume successful CLI commands imply semantic correctness.
 Compare durable state against SOURCE_SCOPE, relevant implementation context, and the Reviewer-PASSed DESIGN_PACKET.
 
 PASS only if:
 - every planned issue exists or maps to the reviewed reused issue
 - durable fields and relations materially match the reviewed design
+- every issue created by this Tasks transaction has structured metadata containing exact key/value `"jls-tasks": "owned"`
+- no pre-existing/reused issue has been given the `jls-tasks` ownership marker merely because Tasks reused or updated it
 - the original source remains completely covered in durable Beads
 - necessary implementation/integration work established by relevant current project context is represented without turning context into product intent
 - no application-time omission, duplicate, contradiction, orphan, oversized leaf, or invented requirement appeared
