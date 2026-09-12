@@ -29,6 +29,7 @@ Tasks currently uses Beads as its native task backend. The official `beads` skil
 15. Spawn prompts contain only dynamic source/project arguments, packets, and exact reviewer deficiencies. The installed specialist definition owns its semantic contract.
 16. One repair attempt is allowed after a failed reviewed design and one repair attempt after a failed final durable-state review. Do not enter reviewer/worker ping-pong.
 17. Do not implement, edit product code, or perform the work represented by the created tasks.
+18. Every Beads issue newly created by Tasks must carry exact structured issue metadata `{"jls-tasks":"owned"}`. Never add this ownership marker to a pre-existing issue that Tasks only reuses or updates.
 
 ## Required specialists
 
@@ -66,7 +67,7 @@ bd dep
 bd ready
 ```
 
-Use the current help output for exact flags, fields, dependency syntax, hierarchy support, and JSON output. Prefer structured `--json` reads where supported.
+Use the current help output for exact flags, fields, dependency syntax, hierarchy support, metadata syntax, and JSON output. Prefer structured `--json` reads where supported.
 Do not run `bd init` automatically. If no Beads database exists, report that prerequisite instead of silently initializing tracker state.
 
 ## Start
@@ -160,7 +161,8 @@ REVIEW_DEFICIENCIES: NONE
 
 The Designer must use current `bd prime` and command help, then create or update the approved Beads graph without re-planning it.
 It may reuse clearly equivalent existing issues identified in the reviewed packet. It must preserve unrelated existing tracker state.
-It must read back every created/updated issue and relevant dependency before returning.
+Every newly created issue must be created with exact structured metadata `{"jls-tasks":"owned"}` using the live supported Beads metadata syntax. Reused or pre-existing issues must not acquire that ownership marker merely because Tasks touches them.
+It must read back every created/updated issue, verify ownership metadata on newly created issues, and verify relevant dependencies before returning.
 
 The result must include an `APPLIED_MAPPING` from every proposed issue key to its durable Beads ID, plus any blocked operation.
 
@@ -186,6 +188,7 @@ PASS only if:
 
 - every planned issue exists or maps to a valid reused issue
 - descriptions, design constraints, acceptance conditions, provenance, hierarchy, and dependencies materially match the reviewed design
+- every issue created by this Tasks transaction has exact structured metadata `{"jls-tasks":"owned"}` and reused/pre-existing issues were not incorrectly marked as Tasks-owned
 - the original source still has complete coverage in the durable graph
 - necessary implementation/integration work established by relevant current project context is represented without turning context into product intent
 - there are no accidental omissions, duplicates, contradictory issues, oversized leaves, orphaned executable work, or invented requirements
